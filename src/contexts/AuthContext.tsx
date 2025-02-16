@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
@@ -35,26 +35,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<void> => {
     console.log('Attempting sign in for:', email);
-    const { error, data } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    console.log('Sign in result:', error ? 'Error' : 'Success');
-    if (error) throw error;
-    return data;
+    
+    if (error) {
+      console.error('Sign in error:', error.message);
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Please verify your email address before signing in. Check your inbox for the verification link.');
+      }
+      throw error;
+    }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<void> => {
     console.log('Attempting sign up for:', email);
-    const { error, data } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
-    console.log('Sign up result:', error ? 'Error' : 'Success');
+    
     if (error) throw error;
-    return data;
   };
 
   const signOut = async () => {

@@ -26,8 +26,12 @@ export const AuthForm = () => {
         console.log('Sign up successful');
         toast({
           title: "Account created",
-          description: "Please check your email to verify your account.",
+          description: "Please check your email to verify your account. You won't be able to sign in until you verify your email.",
+          duration: 6000,
         });
+        // Clear the form after successful signup
+        setEmail('');
+        setPassword('');
       } else {
         await signIn(email, password);
         console.log('Sign in successful');
@@ -42,6 +46,7 @@ export const AuthForm = () => {
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
+        duration: 6000,
       });
     } finally {
       setIsLoading(false);
@@ -57,6 +62,11 @@ export const AuthForm = () => {
         <h3 className="text-lg font-semibold">
           {isSignUp ? 'Create an Account' : 'Welcome Back'}
         </h3>
+        {isSignUp && (
+          <p className="text-sm text-gray-600">
+            You'll need to verify your email before signing in
+          </p>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
