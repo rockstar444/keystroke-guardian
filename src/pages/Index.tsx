@@ -25,34 +25,58 @@ const Index = () => {
 
   const loadStoredPattern = async () => {
     try {
+      console.log('Loading pattern for user:', user?.id);
       const { data, error } = await supabase
         .from('keystroke_patterns')
         .select('pattern')
         .eq('user_id', user?.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading pattern:', error);
+        throw error;
+      }
+      
       if (data) {
+        console.log('Pattern loaded successfully');
         setStoredPattern(data.pattern);
         setMode('verify');
       }
     } catch (error) {
       console.error('Error loading pattern:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load typing pattern",
+        variant: "destructive",
+      });
     }
   };
 
   const handlePatternCapture = async (pattern: any) => {
     try {
+      console.log('Saving pattern for user:', user?.id);
+      console.log('Pattern data:', {
+        user_id: user?.id,
+        phrase: targetPhrase,
+        pattern: pattern
+      });
+
       const { error } = await supabase
         .from('keystroke_patterns')
         .upsert({
           user_id: user?.id,
           phrase: targetPhrase,
           pattern: pattern
+        }, {
+          onConflict: 'user_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving pattern:', error);
+        throw error;
+      }
 
+      console.log('Pattern saved successfully');
       setStoredPattern(pattern);
       setMode('verify');
       
@@ -61,9 +85,10 @@ const Index = () => {
         description: "Your typing pattern has been successfully stored.",
       });
     } catch (error) {
+      console.error('Error saving pattern:', error);
       toast({
         title: "Error",
-        description: "Failed to save typing pattern.",
+        description: error instanceof Error ? error.message : "Failed to save typing pattern.",
         variant: "destructive",
       });
     }
@@ -76,6 +101,11 @@ const Index = () => {
       setMode('enroll');
     } catch (error) {
       console.error('Error signing out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out.",
+        variant: "destructive",
+      });
     }
   };
 
