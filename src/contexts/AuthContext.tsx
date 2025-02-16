@@ -20,12 +20,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session ? 'Session found' : 'No session');
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for changes on auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event);
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -34,19 +36,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log('Attempting sign in for:', email);
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    console.log('Sign in result:', error ? 'Error' : 'Success');
     if (error) throw error;
+    return data;
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    console.log('Attempting sign up for:', email);
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
     });
+    console.log('Sign up result:', error ? 'Error' : 'Success');
     if (error) throw error;
+    return data;
   };
 
   const signOut = async () => {
